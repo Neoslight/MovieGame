@@ -1,26 +1,97 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --bg: #f4efe6;
+  --surface: #ebe4d8;
+  --fg: #1a1714;
+  --muted: #8a8074;
+  --accent: #8b1e1e;
+  --accent-fg: #f9f5ee;
+  --ok: #4b6b3f;
+  --line: #d6cdbe;
+  --grain: 0.055;
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  :root:not([data-theme="light"]) {
+    --bg: #12100e;
+    --surface: #1c1917;
+    --fg: #ede6da;
+    --muted: #857a6c;
+    --accent: #c4362f;
+    --accent-fg: #14100f;
+    --ok: #8fae7d;
+    --line: #2c2823;
+    --grain: 0.08;
   }
 }
 
+:root[data-theme="dark"] {
+  --bg: #12100e;
+  --surface: #1c1917;
+  --fg: #ede6da;
+  --muted: #857a6c;
+  --accent: #c4362f;
+  --accent-fg: #14100f;
+  --ok: #8fae7d;
+  --line: #2c2823;
+  --grain: 0.08;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-fg: var(--accent-fg);
+  --color-ok: var(--ok);
+  --color-line: var(--line);
+  --font-serif: var(--font-editorial), Georgia, "Times New Roman", serif;
+  --font-sans: var(--font-ui), system-ui, sans-serif;
+}
+
+html {
+  background: var(--bg);
+  /* Keeps the answer field clear of the iOS home indicator. */
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-sans);
+  overflow-x: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Film grain: one fixed SVG noise layer over the whole page. */
+.grain::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+  opacity: var(--grain);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--accent-fg);
+}
+
+input,
+button {
+  font: inherit;
+  color: inherit;
 }

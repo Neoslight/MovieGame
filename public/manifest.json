@@ -1,0 +1,18 @@
+{
+  "name": "Contretype",
+  "short_name": "Contretype",
+  "description": "Un jeu de mémoire cinéphile construit sur ton profil Letterboxd.",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#12100e",
+  "theme_color": "#12100e",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

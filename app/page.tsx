@@ -1,69 +1,107 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useLiveQuery } from "dexie-react-hooks";
+import Link from "next/link";
+import { db, getSetting } from "@/lib/db/schema";
+import { deckStats } from "@/lib/srs/queue";
+import { currentStreak } from "@/lib/stats/overview";
+import { Eyebrow, LinkButton, Screen, Stat, Title } from "@/components/ui";
+
+export default function HomePage() {
+  const data = useLiveQuery(async () => {
+    const [stats, username] = await Promise.all([
+      deckStats(),
+      getSetting<string | null>("username", null),
+    ]);
+    const films = await db.films.count();
+    // Only the day column is needed, but Dexie has no projection — the review
+    // table stays small next to the deck, so reading it whole is fine.
+    const streak = currentStreak(await db.reviews.toArray());
+    return { stats, username, films, streak };
+  }, []);
+
+  if (!data) {
+    return (
+      <Screen>
+        <p className="m-auto text-sm text-muted">Chargement…</p>
+      </Screen>
+    );
+  }
+
+  if (data.stats.total === 0) {
+    return (
+      <Screen>
+        <div className="my-auto space-y-8">
+          <div className="space-y-3">
+            <Eyebrow>Mémoire cinéphile</Eyebrow>
+            <Title>
+              Tes films.
+              <br />
+              Tes trous de mémoire.
+            </Title>
+            <p className="text-sm leading-relaxed text-muted">
+              Contretype pioche dans les films de ton profil Letterboxd et te demande qui les a
+              faits. Les titres que tu maîtrises reviennent de moins en moins souvent.
+            </p>
+          </div>
+          <LinkButton href="/onboarding" className="w-full">
+            Importer mon profil
+          </LinkButton>
+        </div>
+        <FooterNav />
+      </Screen>
+    );
+  }
+
+  const { stats } = data;
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+    <Screen>
+      <header className="space-y-2">
+        <Eyebrow>{data.username ? `@${data.username}` : "Ton deck"}</Eyebrow>
+        <Title>
+          {stats.due > 0 ? `${stats.due} film${stats.due > 1 ? "s" : ""} à revoir` : "Deck à jour"}
+        </Title>
+      </header>
+
+      <div className="mt-8 grid grid-cols-2 gap-3">
+        <Stat value={data.films} label="films dans le deck" />
+        <Stat value={stats.total} label="cartes (film × catégorie)" />
+        <Stat value={stats.fresh} label="jamais posées" />
+        <Stat value={stats.mastered} label="mémorisées (&gt; 3 sem.)" />
+      </div>
+
+      {data.streak > 0 && (
+        <p className="mt-4 text-center text-sm text-muted">
+          {data.streak} jour{data.streak > 1 ? "s" : ""} de suite.
+        </p>
+      )}
+
+      <div className="mt-auto space-y-3 pt-10">
+        <LinkButton href="/play" className="w-full">
+          {stats.due > 0 ? "Réviser" : "Jouer quand même"}
+        </LinkButton>
+        <LinkButton href="/onboarding" variant="ghost" className="w-full">
+          Mettre à jour depuis Letterboxd
+        </LinkButton>
+      </div>
+      <FooterNav />
+    </Screen>
+  );
+}
+
+function FooterNav() {
+  return (
+    <nav className="mt-8 flex justify-center gap-6 text-xs text-muted">
+      <Link href="/bonus" className="underline-offset-4 hover:underline">
+        Ton cinéma
+      </Link>
+      <Link href="/history" className="underline-offset-4 hover:underline">
+        Historique
+      </Link>
+      <Link href="/about" className="underline-offset-4 hover:underline">
+        À propos
+      </Link>
+    </nav>
   );
 }
