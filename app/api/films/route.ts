@@ -8,7 +8,9 @@ import { searchConfidentMatch } from "@/lib/tmdb/search";
 import { filmRefKey, type Film } from "@/lib/types";
 
 export const runtime = "nodejs";
-export const maxDuration = 120;
+// 60 s is the ceiling on Vercel's free tier. The worst case below is ~36 s, so
+// this still covers a batch where every single film falls back to Letterboxd.
+export const maxDuration = 60;
 
 /**
  * A typical batch resolves almost entirely through TMDB search and takes a

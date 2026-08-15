@@ -6,7 +6,8 @@ import { fetchFilm, TmdbAuthError } from "@/lib/tmdb/client";
 import type { Film } from "@/lib/types";
 
 export const runtime = "nodejs";
-export const maxDuration = 120;
+// Capped at the free tier's ceiling; see app/api/films/route.ts.
+export const maxDuration = 60;
 
 const BATCH_LIMIT = 60;
 

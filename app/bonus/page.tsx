@@ -12,6 +12,7 @@ import {
   topDirectors,
   weakDirectors,
 } from "@/lib/stats/overview";
+import { letterboxdUrl } from "@/lib/letterboxd/url";
 import { posterUrl } from "@/lib/tmdb/images";
 import { Eyebrow, Screen, Stat, Title } from "@/components/ui";
 
@@ -164,7 +165,7 @@ export default function BonusPage() {
             {data.lost.map((film) => (
               <li key={film.tmdbId}>
                 <a
-                  href={`https://letterboxd.com/film/${film.slug}/`}
+                  href={letterboxdUrl(film)}
                   target="_blank"
                   rel="noreferrer noopener"
                   className="block space-y-1.5"
